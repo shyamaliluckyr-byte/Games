@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fun Futuristic Zone</title>
+
+<style>
+:root {
+    --bg1: #0f172a;
+    --bg2: #020617;
+    --glow: #38bdf8;
+    --accent: #818cf8;
+    --text: white;
+    --card: rgba(255,255,255,0.05);
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+    color: var(--text);
+    text-align: center;
+    transition: 0.4s;
+}
+
+h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(90deg, var(--glow), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.top-buttons {
+    margin: 15px;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 20px;
+    width: 280px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(56,189,248,0.2);
+}
+
+button {
+    background: linear-gradient(90deg, var(--glow), var(--accent));
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 5px;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px var(--glow);
+}
+
+#reactionBox {
+    margin-top: 10px;
+    height: 90px;
+    border-radius: 10px;
+    background: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+input {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 8px;
+}
+
+table {
+    width: 100%;
+    margin-top: 10px;
+}
+
+td {
+    padding: 4px;
+}
+
+/* THEMES */
+.light {
+    --bg1: #e2e8f0;
+    --bg2: #cbd5f5;
+    --text: #0f172a;
+    --card: rgba(0,0,0,0.05);
+}
+
+.party {
+    --bg1: #ff0080;
+    --bg2: #7928ca;
+    --glow: #00f5ff;
+    --accent: #ffea00;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚡ Fun Futuristic Zone ⚡</h1>
+
+<div class="top-buttons">
+    <button onclick="setTheme('default')">🌌 Default</button>
+    <button onclick="setTheme('light')">☀ Light</button>
+    <button onclick="setTheme('party')">🎉 Party</button>
+    <button onclick="toggleMusic()">🎵 Music</button>
+</div>
+
+<div class="container">
+
+    <!-- Reaction Game -->
+    <div class="card">
+        <h2>⚡ Reaction Test</h2>
+        <button onclick="startReaction()">Start</button>
+        <div id="reactionBox">Click Start</div>
+        <p id="reactionResult"></p>
+
+        <input id="playerName" placeholder="Your Name">
+        <button onclick="saveScore()">Save Score</button>
+    </div>
+
+    <!-- Meme Roast -->
+    <div class="card">
+        <h2>🤣 Meme Roast</h2>
+        <button onclick="roastMe()">Roast Me 😈</button>
+        <p id="roastText"></p>
+    </div>
+
+    <!-- Joke Generator -->
+    <div class="card">
+        <h2>😂 Hinglish Jokes</h2>
+        <button onclick="newJoke()">New Joke</button>
+        <p id="jokeText"></p>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="card">
+        <h2>🏆 Leaderboard</h2>
+        <table id="leaderboard"></table>
+        <button onclick="resetBoard()">Reset</button>
+    </div>
+
+</div>
+
+<audio id="bgMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+</audio>
+
+<script>
+/* THEME SWITCH */
+function setTheme(theme) {
+    document.body.className = "";
+    if (theme !== "default") document.body.classList.add(theme);
+}
+
+/* MUSIC MODE */
+let musicOn = false;
+function toggleMusic() {
+    const music = document.getElementById("bgMusic");
+    musicOn = !musicOn;
+    musicOn ? music.play() : music.pause();
+}
+
+/* REACTION GAME */
+let startTime, timeout, lastScore = null;
+
+function startReaction() {
+    const box = document.getElementById("reactionBox");
+    box.innerHTML = "Wait for green...";
+    box.style.background = "#1e293b";
+    document.getElementById("reactionResult").innerHTML = "";
+
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+        box.innerHTML = "CLICK!";
+        box.style.background = "#22c55e";
+        startTime = Date.now();
+    }, Math.random() * 2000 + 1000);
+}
+
+document.getElementById("reactionBox").onclick = function () {
+    const box = document.getElementById("reactionBox");
+
+    if (box.innerHTML === "CLICK!") {
+        lastScore = Date.now() - startTime;
+        document.getElementById("reactionResult").innerHTML =
+            `⏱ ${lastScore} ms ⚡`;
+        box.innerHTML = "Click Start";
+        box.style.background = "#1e293b";
+    }
+};
+
+/* LEADERBOARD */
+function saveScore() {
+    const name = document.getElementById("playerName").value;
+    if (!name || lastScore === null) return;
+
+    let scores = JSON.parse(localStorage.getItem("scores")) || [];
+    scores.push({ name, score: lastScore });
+
+    scores.sort((a,b) => a.score - b.score);
+    scores = scores.slice(0, 5);
+
+    localStorage.setItem("scores", JSON.stringify(scores));
+    loadLeaderboard();
+}
+
+function loadLeaderboard() {
+    const table = document.getElementById("leaderboard");
+    const scores = JSON.parse(localStorage.getItem("scores")) || [];
+
+    table.innerHTML = "";
+    scores.forEach((s,i) => {
+        table.innerHTML += `
+        <tr>
+            <td>#${i+1}</td>
+            <td>${s.name}</td>
+            <td>${s.score} ms</td>
+        </tr>`;
+    });
+}
+
+function resetBoard() {
+    localStorage.removeItem("scores");
+    loadLeaderboard();
+}
+
+loadLeaderboard();
+
+/* ROASTS */
+const roasts = [
+    "Tu slow nahi… cinematic mode mein hai 😂",
+    "Brain loading… 99% pe atka 😌",
+    "Speed test fail… retry karo bhai 🤣",
+    "Legend kehte hain tu abhi bhi ready ho raha hai 😏",
+    "Network bhi bole: bhai jaldi kar ⚡"
+];
+
+function roastMe() {
+    document.getElementById("roastText").innerText =
+        roasts[Math.floor(Math.random()*roasts.length)];
+}
+
+/* JOKES */
+const jokes = [
+    "Plan: Study hard\nReality: Reels hard 😂",
+    "Alarm vs Me = Daily WWE match ⏰🤣",
+    "Diet kal se… har kal same 😭",
+    "Mobile 5% → Life crisis 🤯",
+    "Friend: Notes bhej\nMe: Emotional support lele 😎"
+];
+
+function newJoke() {
+    document.getElementById("jokeText").innerText =
+        jokes[Math.floor(Math.random()*jokes.length)];
+}
+</script>
+
+</body>
+</html>
